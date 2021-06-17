@@ -1,4 +1,4 @@
-from flask import Blueprint, json, request, jsonify, make_response
+from flask import Blueprint, request, jsonify, make_response
 import hashlib, binascii, os
 from models.user import User
 from database import db
@@ -24,7 +24,7 @@ def verify_password(hashed_password, password):
 @user_api.route("/user/register", methods=['POST'])
 def register():
     payload = request.get_json()
-    user = User(payload['username'], payload['email'], password=hash_password(payload['password']))
+    user = User(payload['username'], payload['email'], password=hash_password(payload['password']), user_type=payload['user_type'])
     try:
         db.session.add(user)
         db.session.commit()
