@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, make_response
+from flask import Blueprint, json, request, jsonify, make_response
 import hashlib, binascii, os
 from models.user import User
 from database import db
@@ -31,5 +31,19 @@ def register():
         response = make_response(jsonify(user.to_dict()), 201)
     except Exception as e:
         response = make_response(jsonify({"cause": str(e)}), 500)
+    response.headers["Content-Type"] = "application/json"
+    return response
+
+@user_api.route("/user/login", methods=['POST'])
+def login():
+    payload = request.get_json()
+    user = User.query.filter_by(username=payload['username']).first()
+    if user is not None:
+        if verify_password(user.password, payload['password']):
+            response = make_response(jsonify(user.to_dict()), 200)
+        else:
+            response = make_response(jsonify({'cause': 'password or username is wrong'}), 401)
+    else:
+        response = make_response(jsonify({'cause': 'user account not found. create a new account'}), 401)
     response.headers["Content-Type"] = "application/json"
     return response
