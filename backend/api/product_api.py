@@ -1,8 +1,10 @@
 from flask import Blueprint, request, jsonify, make_response
 import os
+import uuid
 from models.product import Product
 from models.user import User, UserType
 from database import db
+from PIL import Image
 
 product_api = Blueprint('product_api', __name__)
 
@@ -13,6 +15,9 @@ def create_directory(directory_name):
     if not os.path.exists(path):
         os.makedirs(path)
     return path
+
+def save_image(path_name, image):
+    return image.save(path_name)
 
 @product_api.route('/product')
 def index():
@@ -68,3 +73,22 @@ def verify():
     response.headers["Content-Type"] = "application/json"
     return response
 
+@product_api.route('/product/image', methods=['POST'])
+def upload_image():
+    productID = int(request.args.get('productID'))
+    userID = int(request.args.get('userID'))
+    user = User.query.get(userID)
+    if user is not None:
+        product = Product.query.get(productID)
+        if product.verified == True:
+            path = '{}/{}/{}.png'.format(BASE_FILE_PATH, product.name, uuid.uuid4().hex)
+            file = request.files['image']
+            img = Image.open(file.stream)
+            save_image(path, img)
+            response = make_response(jsonify({'msg': 'success', 'size': [img.width, img.height]}), 200)
+        else:
+            response = make_response(jsonify({'cause': 'product not verified'}), 500)
+    else:
+        response = make_response(jsonify({'cause': 'user not found'}), 500)
+    response.headers["Content-Type"] = "application/json"
+    return response
