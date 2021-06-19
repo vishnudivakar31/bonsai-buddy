@@ -8,7 +8,7 @@ from PIL import Image
 
 product_api = Blueprint('product_api', __name__)
 
-BASE_FILE_PATH = '../files'
+BASE_FILE_PATH = '../files/training_data'
 
 def create_directory(directory_name):
     path = '{}/{}'.format(BASE_FILE_PATH, directory_name)
